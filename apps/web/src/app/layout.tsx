@@ -10,6 +10,8 @@ import { ThemeBootstrap } from "@/components/ThemeBootstrap";
 import { KeyboardShortcutsProvider } from "@/contexts/KeyboardShortcutsContext";
 import { KeyboardShortcutsModal } from "@/components/KeyboardShortcutsModal";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+import { TxToastProvider } from "@/contexts/TxToastContext";
+import { TxToast } from "@/components/TxToast";
 
 export const metadata: Metadata = {
   title: "Linkora",
@@ -44,19 +46,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <ThemeBootstrap />
-        <WalletProvider>
-          <OnboardingProvider>
-            <GuidedTourProvider>
-              <NotificationsProvider>
-                <NavBar />
-                <main id="main-content" tabIndex={-1} className="pb-safe md:pb-0">
-                  {children}
-                </main>
-                <GuidedTour />
-              </NotificationsProvider>
-            </GuidedTourProvider>
-          </OnboardingProvider>
-        </WalletProvider>
+        <TxToastProvider>
+          <WalletProvider>
+            <OnboardingProvider>
+              <GuidedTourProvider>
+                <NotificationsProvider>
+                  <NavBar />
+                  <main id="main-content" tabIndex={-1} className="pb-safe md:pb-0">
+                    {children}
+                  </main>
+                  <GuidedTour />
+                </NotificationsProvider>
+              </GuidedTourProvider>
+            </OnboardingProvider>
+          </WalletProvider>
+          {/* Global Soroban tx lifecycle toast — sits outside WalletProvider intentionally */}
+          <TxToast />
+        </TxToastProvider>
       </body>
     </html>
   );

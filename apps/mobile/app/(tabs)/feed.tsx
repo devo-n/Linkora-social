@@ -1,17 +1,11 @@
 import React, { useEffect } from "react";
-import {
-  FlatList,
-  StyleSheet,
-  ActivityIndicator,
-  RefreshControl,
-  View,
-  AppState,
-} from "react-native";
+import { FlatList, StyleSheet, ActivityIndicator, View, AppState } from "react-native";
 import { useRouter } from "expo-router";
 import { PostCard, Post } from "../../components/PostCard";
 import { PostCardSkeleton } from "../../components/skeletons/PostCardSkeleton";
 import { EmptyState } from "../../components/states/EmptyState";
 import { ErrorState } from "../../components/states/ErrorState";
+import { BrandedRefreshIndicator } from "../../components/BrandedRefreshIndicator";
 import { useFeed } from "../../hooks/useFeed";
 import { useTheme } from "../../theme/useTheme";
 import { evictStaleCache } from "../../utils/db";
@@ -89,11 +83,10 @@ export default function FeedScreen() {
       onEndReached={loadMore}
       onEndReachedThreshold={0.4}
       refreshControl={
-        <RefreshControl
+        <BrandedRefreshIndicator
           refreshing={loading && posts.length > 0}
           onRefresh={refresh}
-          tintColor={theme.colors.brand.primary}
-          colors={[theme.colors.brand.primary]}
+          color={theme.colors.brand.primary}
         />
       }
     />

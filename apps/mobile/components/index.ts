@@ -9,4 +9,8 @@ export { WalletButton } from "./WalletButton";
 export { MiniAppIcon } from "./MiniAppIcon";
 export { TipModal } from "./TipModal";
 export { AnalyticsCard } from "./AnalyticsCard";
+export { LinkoraLogo } from "./LinkoraLogo";
+export { BrandedRefreshIndicator } from "./BrandedRefreshIndicator";
 export type { MiniApp } from "./MiniAppIcon";
+export type { LinkoraLogoProps } from "./LinkoraLogo";
+export type { BrandedRefreshIndicatorProps } from "./BrandedRefreshIndicator";

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 // ── Stat Card Skeleton ───────────────────────────────────────────────────────
 // A single stat card skeleton whose dimensions match the real card exactly.
@@ -153,7 +153,7 @@ const mockPosts: PostItem[] = [
     avatarBg: "#A78BFA",
     time: "12h ago",
     content:
-      "Theme system with CSS custom properties allows instant toggling between dark navy (#0B1120) and crisp light theme tokens.",
+      "Theme system with CSS custom properties allows instant toggling between dark navy and crisp light theme tokens.",
     likes: 76,
     comments: 8,
     shares: 4,
@@ -164,11 +164,65 @@ interface DashboardPostGridProps {
   isLoading?: boolean;
 }
 
+/**
+ * DashboardPostGrid — masonry grid of posts with progressive per-card skeleton
+ * loading and stagger-in animation on data arrival.
+ *
+ * When `isLoading` is true, each skeleton card has its own loading state (one
+ * card at a time in a staggered reveal) rather than all cards appearing at once.
+ * Cards animate in when real data arrives to prevent CLS.
+ */
 export function DashboardPostGrid({ isLoading = false }: DashboardPostGridProps) {
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>(
     mockPosts.reduce((acc, p) => ({ ...acc, [p.id]: p.likes }), {})
   );
+
+  // Track which skeleton cards are "revealed" to create the stagger effect.
+  const [revealedSkeletons, setRevealedSkeletons] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setRevealedSkeletons([]);
+      return;
+    }
+
+    // Reveal skeleton cards one-by-one with a 120ms stagger — each card has
+    // its own loading state rather than the whole grid appearing at once.
+    let idx = 0;
+    const ids: ReturnType<typeof setInterval>[] = [];
+    const reveal = () => {
+      if (idx < mockPosts.length) {
+        const current = idx;
+        setRevealedSkeletons((prev) => [...prev, current]);
+        idx++;
+        ids.push(setTimeout(reveal, 120));
+      }
+    };
+    const initial = setTimeout(reveal, 0);
+
+    return () => {
+      clearTimeout(initial);
+      ids.forEach(clearTimeout);
+      setRevealedSkeletons([]);
+    };
+  }, [isLoading]);
+
+  // Stagger animate-in for real cards when loading resolves.
+  const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (isLoading) {
+      setVisibleCards({});
+      return;
+    }
+    mockPosts.forEach((post, i) => {
+      const timer = setTimeout(() => {
+        setVisibleCards((prev) => ({ ...prev, [post.id]: true }));
+      }, i * 80);
+      return () => clearTimeout(timer);
+    });
+  }, [isLoading]);
 
   const handleLike = (id: string) => {
     setLikedPosts((prev) => {
@@ -199,6 +253,7 @@ export function DashboardPostGrid({ isLoading = false }: DashboardPostGridProps)
       {mockPosts.map((post) => {
         const isLiked = !!likedPosts[post.id];
         const currentLikes = likeCounts[post.id];
+        const isVisible = !!visibleCards[post.id];
 
         return (
           <article
@@ -211,10 +266,13 @@ export function DashboardPostGrid({ isLoading = false }: DashboardPostGridProps)
               padding: "20px",
               marginBottom: "20px",
               breakInside: "avoid",
-              transition: "transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease",
+              transition:
+                "transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, opacity 0.3s ease",
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? "translateY(0)" : "translateY(8px)",
             }}
           >
-            {/* Post Header: Avatar + Username + Handle + Verified + Options */}
+            {/* Post Header */}
             <div
               style={{
                 display: "flex",
@@ -275,7 +333,6 @@ export function DashboardPostGrid({ isLoading = false }: DashboardPostGridProps)
                 </div>
               </div>
 
-              {/* Three Dots More Options Menu */}
               <button
                 aria-label="More options"
                 style={{
@@ -304,7 +361,7 @@ export function DashboardPostGrid({ isLoading = false }: DashboardPostGridProps)
               {post.content}
             </p>
 
-            {/* Action Buttons: Like, Comment, Share */}
+            {/* Action Buttons */}
             <div
               style={{
                 display: "flex",

@@ -338,3 +338,31 @@ body {
 .pb-safe {
   padding-bottom: calc(4rem + env(safe-area-inset-bottom));
 }
+
+/* TxToast animations */
+@keyframes tx-toast-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes tx-toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes tx-toast-spin {
+    from { transform: none; }
+    to   { transform: none; }
+  }
+  @keyframes tx-toast-slide-in {
+    from { opacity: 0; transform: none; }
+    to   { opacity: 1; transform: none; }
+  }
+}
